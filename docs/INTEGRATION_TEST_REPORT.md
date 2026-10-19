@@ -2,12 +2,12 @@
 
 **System:** OOAD Banking System (Java 17, JavaFX 17, H2 2.3 via JDBC)
 **Command:** `mvn test`
-**Result:** 23 tests, 0 failures, 0 errors
+**Result:** 28 tests, 0 failures, 0 errors
 
 | Suite | Layer(s) exercised | Tests | Result |
 |-------|--------------------|-------|--------|
 | `model.AccountTest` | Domain model | 10 | Pass |
-| `integration.BankingIntegrationTest` | Controller -> Service -> Domain -> DAO (JDBC) -> H2 (in-memory) | 10 | Pass |
+| `integration.BankingIntegrationTest` | Controller -> Service -> Domain -> DAO (JDBC) -> H2 (in-memory) | 15 | Pass |
 | `view.GuiFlowTest` | JavaFX views (headless TestFX/Monocle) -> Controller -> Service -> Domain -> DAO -> H2 | 3 | Pass |
 
 ## Test environment
@@ -46,3 +46,8 @@ transactions + 1 admin), so tests are independent and repeatable.
 | 11 | Invalid login (GUI) | `invalidLoginShowsErrorMessage` | error shown, stays on login screen | Pass |
 | 12 | Admin login (GUI) | `administratorCanOpenAdminDashboard` | admin customer table shown | Pass |
 | 13 | Domain rules | `AccountTest` (10 tests) | interest rates, limits, state machines, age, lockout | Pass |
+| 14 | Interest run twice in one month | `interestIsPaidOnlyOncePerMonth` | second run pays nothing | Pass |
+| 15 | Customer locked while logged in | `lockedCustomerCannotMoveFundsEvenWhileLoggedIn` | deposit rejected | Pass |
+| 16 | Amount parsing | `centAmountsAreAcceptedAndHugeOrExponentAmountsRejected` | 0.29 accepted; 1e16, >1 billion, 3 decimals rejected | Pass |
+| 17 | Delete customer that has accounts | `customerWithAccountsCannotBeDeleted` | rejected, customer kept | Pass |
+| 18 | Password storage | `passwordsAreStoredAsSaltedPbkdf2Hashes` | salted PBKDF2, unique per user | Pass |

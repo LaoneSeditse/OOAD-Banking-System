@@ -20,6 +20,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 /**
  * Customer registration form (use case: Register Customer / Provide Personal or Business Information).
@@ -49,6 +50,11 @@ public class RegisterView {
         TextField regNumber = field("registrationNumberField", "Company registration number");
         DatePicker dob = new DatePicker(LocalDate.now().minusYears(25));
         dob.setId("dobPicker");
+        dob.focusedProperty().addListener((obs, was, focused) -> {
+            if (!focused) {
+                commitTypedDate(dob);
+            }
+        });
         TextField postal = field("postalField", "P.O. Box ...");
         TextField physical = field("physicalField", "Plot / street / town");
         TextField income = field("incomeField", "Monthly income in BWP");
@@ -92,6 +98,11 @@ public class RegisterView {
         Button back = ViewUtils.secondary("Back to login");
         back.setOnAction(e -> navigator.showLogin());
         submit.setOnAction(e -> {
+            if (!commitTypedDate(dob)) {
+                ViewUtils.show(message, false, "Please enter a valid date of birth (use the calendar or e.g. "
+                        + dob.getConverter().toString(LocalDate.of(1990, 12, 31)) + ")");
+                return;
+            }
             RegistrationRequest request = new RegistrationRequest(
                     company.isSelected() ? "COMPANY" : "INDIVIDUAL",
                     firstName.getText(), lastName.getText(), idNumber.getText(),
@@ -116,6 +127,21 @@ public class RegisterView {
         ScrollPane scroll = new ScrollPane(wrapper);
         scroll.setFitToWidth(true);
         return scroll;
+    }
+
+    /** A DatePicker only updates its value on Enter; also commit text that was typed and tabbed out of. */
+    private static boolean commitTypedDate(DatePicker picker) {
+        String text = picker.getEditor().getText();
+        if (text == null || text.isBlank()) {
+            picker.setValue(null);
+            return true;
+        }
+        try {
+            picker.setValue(picker.getConverter().fromString(text.trim()));
+            return true;
+        } catch (DateTimeParseException ex) {
+            return false;
+        }
     }
 
     private static TextField field(String id, String prompt) {

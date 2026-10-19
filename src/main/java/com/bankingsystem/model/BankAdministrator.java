@@ -1,5 +1,7 @@
 package com.bankingsystem.model;
 
+import com.bankingsystem.util.PasswordUtil;
+
 /**
  * Bank staff member who manages customers and accounts and generates reports.
  */
@@ -18,8 +20,8 @@ public class BankAdministrator {
         this.passwordHash = passwordHash;
     }
 
-    public boolean login(String username, String hashedPassword) {
-        return this.username.equalsIgnoreCase(username) && this.passwordHash.equals(hashedPassword);
+    public boolean login(String username, String password) {
+        return this.username.equalsIgnoreCase(username) && PasswordUtil.matches(password, passwordHash);
     }
 
     public String getAdminId() {

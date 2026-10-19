@@ -35,7 +35,7 @@ public class CustomerService {
         if (customer.getStatus() == UserStatus.LOCKED || !customer.isActive()) {
             return new AuthResult(AuthStatus.ACCOUNT_LOCKED, customer);
         }
-        boolean ok = customer.login(username, PasswordUtil.hash(username, rawPassword));
+        boolean ok = customer.login(username, rawPassword);
         customerDAO.updateLoginState(customer);
         if (ok) {
             return new AuthResult(AuthStatus.SUCCESS, customer);
@@ -47,7 +47,8 @@ public class CustomerService {
 
     public boolean verifyPassword(String customerId, String rawPassword) {
         return customerDAO.findById(customerId)
-                .map(c -> PasswordUtil.matches(c.getUsername(), rawPassword, c.getPassword()))
+                .filter(c -> c.isActive() && c.getStatus() == UserStatus.ACTIVE)
+                .map(c -> PasswordUtil.matches(rawPassword, c.getPassword()))
                 .orElse(false);
     }
 
@@ -75,7 +76,7 @@ public class CustomerService {
                                        String postalAddress, String physicalAddress, double income)
             throws BankingException {
         ensureUsernameAvailable(username);
-        Customer customer = new IndividualCustomer(null, username, PasswordUtil.hash(username, rawPassword),
+        Customer customer = new IndividualCustomer(null, username, PasswordUtil.hash(rawPassword),
                 dateOfBirth, firstName, lastName, idNumber, postalAddress, physicalAddress, income);
         return register(customer);
     }
@@ -85,7 +86,7 @@ public class CustomerService {
                                     String postalAddress, String physicalAddress, double income)
             throws BankingException {
         ensureUsernameAvailable(username);
-        Customer customer = new CompanyCustomer(null, username, PasswordUtil.hash(username, rawPassword),
+        Customer customer = new CompanyCustomer(null, username, PasswordUtil.hash(rawPassword),
                 representativeDateOfBirth, companyName, registrationNumber, postalAddress, physicalAddress, income);
         return register(customer);
     }

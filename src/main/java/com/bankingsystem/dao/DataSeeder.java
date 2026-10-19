@@ -34,15 +34,22 @@ public class DataSeeder {
         this.accountService = accountService;
     }
 
+    /** The demo admin password, overridable with the BANK_ADMIN_PASSWORD environment variable. */
+    public static String adminPassword() {
+        String fromEnv = System.getenv("BANK_ADMIN_PASSWORD");
+        return fromEnv == null || fromEnv.isBlank() ? ADMIN_PASSWORD : fromEnv;
+    }
+
     public void seedIfEmpty() {
         try {
-            if (administratorDAO.count() == 0) {
-                administratorDAO.insert(new BankAdministrator("ADM001", "System Administrator", "admin@bank.co.bw",
-                        ADMIN_USERNAME, PasswordUtil.hash(ADMIN_USERNAME, ADMIN_PASSWORD)));
+            // Only a brand-new demo database gets the sample admin; existing data is never given
+            // a default administrator.
+            if (customerDAO.count() != 0 || administratorDAO.count() != 0) {
+                return;
             }
-            if (customerDAO.count() == 0) {
-                seedCustomers();
-            }
+            administratorDAO.insert(new BankAdministrator("ADM001", "System Administrator", "admin@bank.co.bw",
+                    ADMIN_USERNAME, PasswordUtil.hash(adminPassword())));
+            seedCustomers();
         } catch (BankingException e) {
             throw new IllegalStateException("Sample data could not be inserted: " + e.getMessage(), e);
         }

@@ -154,6 +154,18 @@ public class AccountDAO implements AccountNumberGenerator {
         }
     }
 
+    /** Locks the account row until the surrounding transaction ends (SELECT ... FOR UPDATE). */
+    public void lockForUpdate(String accountNumber) {
+        try (Connection conn = database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT balance FROM accounts WHERE account_number = ? FOR UPDATE")) {
+            ps.setString(1, accountNumber);
+            ps.executeQuery().close();
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not lock account " + accountNumber, e);
+        }
+    }
+
     /** saveAccount(account) in the Deposit sequence diagram: persists balance, branch and status. */
     public void saveAccount(Account account) {
         String sql = "UPDATE accounts SET balance = ?, branch = ?, status = ? WHERE account_number = ?";

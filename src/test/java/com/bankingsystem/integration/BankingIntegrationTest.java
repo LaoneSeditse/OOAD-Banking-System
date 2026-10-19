@@ -171,6 +171,50 @@ class BankingIntegrationTest {
         assertFalse(accounts.processDeposit(other, "10", DataSeeder.SAMPLE_PASSWORD).success());
     }
 
+    @Test
+    void interestIsPaidOnlyOncePerMonth() {
+        auth.loginAdministrator(DataSeeder.ADMIN_USERNAME, DataSeeder.ADMIN_PASSWORD);
+        assertTrue(admin.payMonthlyInterest().success());
+        double total = admin.getAllAccounts().stream().mapToDouble(AccountSummary::balance).sum();
+        ActionResult<List<TransactionRow>> second = admin.payMonthlyInterest();
+        assertTrue(second.data() == null || second.data().isEmpty(), second.message());
+        assertEquals(total, admin.getAllAccounts().stream().mapToDouble(AccountSummary::balance).sum(), 0.001);
+    }
+
+    @Test
+    void lockedCustomerCannotMoveFundsEvenWhileLoggedIn() {
+        auth.validateCredentials("kmolefe", DataSeeder.SAMPLE_PASSWORD);
+        String number = accounts.getMyAccounts().get(0).accountNumber();
+        String id = auth.getSession().getUserId();
+        new com.bankingsystem.service.CustomerService(system.getCustomerDAO(), null).lockAccount(id);
+        assertFalse(accounts.processDeposit(number, "10", DataSeeder.SAMPLE_PASSWORD).success());
+    }
+
+    @Test
+    void centAmountsAreAcceptedAndHugeOrExponentAmountsRejected() {
+        auth.validateCredentials("kmolefe", DataSeeder.SAMPLE_PASSWORD);
+        String number = accounts.getMyAccounts().get(0).accountNumber();
+        assertTrue(accounts.processDeposit(number, "0.29", DataSeeder.SAMPLE_PASSWORD).success());
+        assertFalse(accounts.processDeposit(number, "1e16", DataSeeder.SAMPLE_PASSWORD).success());
+        assertFalse(accounts.processDeposit(number, "10000000000000", DataSeeder.SAMPLE_PASSWORD).success());
+        assertFalse(accounts.processDeposit(number, "1.234", DataSeeder.SAMPLE_PASSWORD).success());
+    }
+
+    @Test
+    void customerWithAccountsCannotBeDeleted() {
+        auth.loginAdministrator(DataSeeder.ADMIN_USERNAME, DataSeeder.ADMIN_PASSWORD);
+        String id = admin.getAllCustomers().get(0).customerId();
+        assertFalse(admin.deleteCustomer(id).success());
+        assertTrue(system.getCustomerDAO().findById(id).isPresent());
+    }
+
+    @Test
+    void passwordsAreStoredAsSaltedPbkdf2Hashes() {
+        String stored = system.getCustomerDAO().findCustomer("kmolefe").orElseThrow().getPassword();
+        assertTrue(stored.startsWith("pbkdf2$"));
+        assertNotEquals(stored, system.getCustomerDAO().findCustomer("tsetshwane").orElseThrow().getPassword());
+    }
+
     private boolean accountBelongsToKmolefe(String accountNumber) {
         return system.getAccountDAO().getAccount(accountNumber).orElseThrow()
                 .getHolder().getUsername().equals("kmolefe");

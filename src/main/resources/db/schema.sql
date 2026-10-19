@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS accounts (
     interest_rate  DECIMAL(8,5)  NOT NULL,
     opened_date    DATE          NOT NULL,
     CONSTRAINT fk_account_customer FOREIGN KEY (customer_id)
-        REFERENCES customers (customer_id) ON DELETE CASCADE
+        REFERENCES customers (customer_id) ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS employment_details (
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     balance_after    DECIMAL(15,2) NOT NULL,
     status           VARCHAR(15)   NOT NULL CHECK (status IN ('INITIATED', 'VALIDATED', 'COMPLETED', 'FAILED', 'CANCELLED')),
     CONSTRAINT fk_transaction_account FOREIGN KEY (account_number)
-        REFERENCES accounts (account_number) ON DELETE CASCADE
+        REFERENCES accounts (account_number) ON DELETE RESTRICT
 );
 
 CREATE INDEX IF NOT EXISTS idx_transactions_account ON transactions (account_number);

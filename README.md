@@ -37,7 +37,9 @@ plus one administrator. These are demo-only credentials:
 | Customer | `kmolefe`, `tsetshwane`, `nmokoena`, `lkgosi`, `omasire`, `bseretse`, `pdintwe`, `gmotsumi`, `kalaharitech`, `okavangofoods` | `password123` |
 | Administrator (tick "Log in as bank administrator") | `admin` | `admin123` |
 
-Delete the `data/` folder to reset the database.
+The sample administrator is only created in a brand-new database; set the `BANK_ADMIN_PASSWORD`
+environment variable before the first start to use a different admin password. Passwords are stored as
+salted PBKDF2-HMAC-SHA256 hashes. Delete the `data/` folder to reset the database.
 
 ## Business rules implemented
 
@@ -50,7 +52,9 @@ Delete the `data/` folder to reset the database.
 | Withdrawal limit BWP 5,000 per transaction; balance cannot go negative | `Account` |
 | Account states Pending -> Active <-> Suspended -> Closed | `Account`, `AccountStatus` |
 | Transaction states Initiated -> Validated -> Completed / Failed / Cancelled | `Transaction`, `TransactionStatus` |
-| Customer locked after 3 failed logins, administrator can unlock | `User`, `AuthenticationController`, `AdminController` |
+| Customer locked after 3 failed logins, administrator can unlock; locked customers cannot transact | `User`, `AuthenticationController`, `AdminController`, `CustomerService` |
+| Each deposit/withdrawal/transfer/interest run is one JDBC transaction (all-or-nothing, row-locked) | `Database.inTransaction`, `AccountService` |
+| Monthly interest is paid at most once per account per calendar month | `AccountService.payMonthlyInterest` |
 
 ## Architecture
 

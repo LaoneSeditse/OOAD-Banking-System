@@ -1,5 +1,9 @@
 package com.bankingsystem.dao;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
+import java.util.concurrent.locks.ReentrantLock;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +24,14 @@ public class Database {
     private final String user;
     private final String password;
     private Connection keepAlive;
+    private final ThreadLocal<Connection> transactionConnection = new ThreadLocal<>();
+    private final ReentrantLock writeLock = new ReentrantLock();
+
+    /** A unit of work that runs inside {@link #inTransaction(TransactionWork)}. */
+    @FunctionalInterface
+    public interface TransactionWork<T, E extends Exception> {
+        T run() throws E;
+    }
 
     public Database(String url, String user, String password) {
         this.url = url;
@@ -67,8 +79,83 @@ public class Database {
         }
     }
 
+    /**
+     * Returns a connection. Inside {@link #inTransaction(TransactionWork)} every DAO call shares the
+     * transaction's connection (its close() is ignored until the transaction ends).
+     */
     public Connection getConnection() throws SQLException {
+        Connection tx = transactionConnection.get();
+        if (tx != null) {
+            return nonClosing(tx);
+        }
         return DriverManager.getConnection(url, user, password);
+    }
+
+    /**
+     * Runs {@code work} as one JDBC transaction: all DAO writes commit together or are rolled back
+     * together. Write transactions are serialised so concurrent balance updates cannot be lost.
+     */
+    public <T, E extends Exception> T inTransaction(TransactionWork<T, E> work) throws E {
+        if (transactionConnection.get() != null) {
+            return work.run();
+        }
+        writeLock.lock();
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(url, user, password);
+            conn.setAutoCommit(false);
+            transactionConnection.set(conn);
+            T result = work.run();
+            conn.commit();
+            return result;
+        } catch (SQLException e) {
+            rollback(conn);
+            throw new DataAccessException("Database transaction failed", e);
+        } catch (RuntimeException | Error e) {
+            rollback(conn);
+            throw e;
+        } catch (Exception e) {
+            rollback(conn);
+            throw e;
+        } finally {
+            transactionConnection.remove();
+            closeQuietly(conn);
+            writeLock.unlock();
+        }
+    }
+
+    private static Connection nonClosing(Connection target) {
+        return (Connection) Proxy.newProxyInstance(Database.class.getClassLoader(), new Class<?>[]{Connection.class},
+                (proxy, method, args) -> {
+                    if ("close".equals(method.getName())) {
+                        return null;
+                    }
+                    try {
+                        return method.invoke(target, args);
+                    } catch (InvocationTargetException e) {
+                        throw e.getCause();
+                    }
+                });
+    }
+
+    private static void rollback(Connection conn) {
+        if (conn != null) {
+            try {
+                conn.rollback();
+            } catch (SQLException ignored) {
+                // the original failure is more relevant than a failed rollback
+            }
+        }
+    }
+
+    private static void closeQuietly(Connection conn) {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException ignored) {
+                // nothing useful to do
+            }
+        }
     }
 
     public String getUrl() {

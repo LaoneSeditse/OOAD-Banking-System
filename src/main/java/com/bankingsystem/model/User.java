@@ -1,5 +1,7 @@
 package com.bankingsystem.model;
 
+import com.bankingsystem.util.PasswordUtil;
+
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Objects;
@@ -31,14 +33,14 @@ public abstract class User {
     }
 
     /**
-     * Compares the supplied credentials with the stored ones. The stored password is expected
-     * to already be hashed, so callers pass the hashed form of the entered password.
+     * Compares the supplied credentials with the stored ones. {@code password} is the plain password
+     * entered by the user; it is checked against the stored salted hash.
      */
     public boolean login(String username, String password) {
         if (!isActive || status == UserStatus.LOCKED) {
             return false;
         }
-        boolean ok = this.username.equalsIgnoreCase(username) && this.password.equals(password);
+        boolean ok = this.username.equalsIgnoreCase(username) && PasswordUtil.matches(password, this.password);
         if (ok) {
             failedLoginAttempts = 0;
             loggedIn = true;

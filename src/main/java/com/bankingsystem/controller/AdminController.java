@@ -82,8 +82,13 @@ public class AdminController {
         if (InputValidator.isBlank(customerId)) {
             return ActionResult.fail("Please select a customer");
         }
+        int accounts = accountService.getAccountsForCustomer(customerId).size();
+        if (accounts > 0) {
+            return ActionResult.fail("Customer " + customerId + " still has " + accounts
+                    + " account(s). Accounts and their transaction history must be kept - lock the customer instead.");
+        }
         customerService.deleteCustomer(customerId);
-        return ActionResult.ok("Customer " + customerId + " and all their accounts have been deleted");
+        return ActionResult.ok("Customer " + customerId + " has been deleted");
     }
 
     public ActionResult<Void> suspendAccount(String accountNumber) {

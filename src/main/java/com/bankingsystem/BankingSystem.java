@@ -54,7 +54,7 @@ public class BankingSystem {
         BankService bankService = new BankServiceImpl(accountDAO);
         TransactionService transactionService = new TransactionServiceImpl(transactionDAO);
         customerService = new CustomerService(customerDAO, sessionDAO);
-        accountService = new AccountService(bankService, accountDAO, customerDAO, transactionService);
+        accountService = new AccountService(database, bankService, accountDAO, customerDAO, transactionService);
         adminService = new AdminService(administratorDAO, customerService, accountService);
 
         authenticationController = new AuthenticationController(customerService, adminService, session);
