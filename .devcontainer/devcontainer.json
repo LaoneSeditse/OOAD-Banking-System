@@ -1,0 +1,24 @@
+{
+  "name": "OOAD Banking System (Java 17 + JavaFX)",
+  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "none",
+      "installMaven": "true"
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {}
+  },
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": { "label": "Desktop (noVNC) - password: vscode", "onAutoForward": "notify" }
+  },
+  "containerEnv": {
+    "DISPLAY": ":1"
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libgtk-3-0 libgl1 libxtst6 libxxf86vm1 && mvn -q -DskipTests compile",
+  "customizations": {
+    "vscode": {
+      "extensions": ["vscjava.vscode-java-pack"]
+    }
+  }
+}
