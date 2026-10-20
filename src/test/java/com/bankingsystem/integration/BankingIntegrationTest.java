@@ -5,6 +5,7 @@ import com.bankingsystem.controller.AccountController;
 import com.bankingsystem.controller.AdminController;
 import com.bankingsystem.controller.AuthenticationController;
 import com.bankingsystem.controller.dto.AccountSummary;
+import com.bankingsystem.controller.dto.CustomerSummary;
 import com.bankingsystem.controller.dto.ActionResult;
 import com.bankingsystem.controller.dto.RegistrationRequest;
 import com.bankingsystem.controller.dto.TransactionRow;
@@ -213,6 +214,18 @@ class BankingIntegrationTest {
         String stored = system.getCustomerDAO().findCustomer("kmolefe").orElseThrow().getPassword();
         assertTrue(stored.startsWith("pbkdf2$"));
         assertNotEquals(stored, system.getCustomerDAO().findCustomer("tsetshwane").orElseThrow().getPassword());
+    }
+
+    @Test
+    void adminCustomerListShowsTotalBalanceOfAllAccounts() {
+        auth.loginAdministrator(DataSeeder.ADMIN_USERNAME, DataSeeder.ADMIN_PASSWORD);
+        CustomerSummary kagiso = admin.getAllCustomers().stream()
+                .filter(c -> c.username().equals("kmolefe")).findFirst().orElseThrow();
+        double expected = admin.getAllAccounts().stream()
+                .filter(a -> a.customerId().equals(kagiso.customerId()))
+                .mapToDouble(AccountSummary::balance).sum();
+        assertTrue(expected > 0);
+        assertEquals(expected, kagiso.totalBalance(), 0.001);
     }
 
     private boolean accountBelongsToKmolefe(String accountNumber) {

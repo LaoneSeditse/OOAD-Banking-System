@@ -33,6 +33,7 @@ final class DtoMapper {
 
     static CustomerSummary toSummary(Customer c, List<Account> accounts) {
         return new CustomerSummary(c.getCustomerId(), c.getDisplayName(), c.getCustomerType(), c.getUsername(),
-                c.getStatus().name(), c.getAge(), accounts.size(), c.getTotalBalance());
+                c.getStatus().name(), c.getAge(), accounts.size(),
+                accounts.stream().mapToDouble(Account::getBalance).sum());
     }
 }

@@ -2,12 +2,12 @@
 
 **System:** OOAD Banking System (Java 17, JavaFX 17, H2 2.3 via JDBC)
 **Command:** `mvn test`
-**Result:** 30 tests, 0 failures, 0 errors
+**Result:** 31 tests, 0 failures, 0 errors
 
 | Suite | Layer(s) exercised | Tests | Result |
 |-------|--------------------|-------|--------|
 | `model.AccountTest` | Domain model | 10 | Pass |
-| `integration.BankingIntegrationTest` | Controller -> Service -> Domain -> DAO (JDBC) -> H2 (in-memory) | 15 | Pass |
+| `integration.BankingIntegrationTest` | Controller -> Service -> Domain -> DAO (JDBC) -> H2 (in-memory) | 16 | Pass |
 | `view.GuiFlowTest` | JavaFX views (headless TestFX/Monocle) -> Controller -> Service -> Domain -> DAO -> H2 | 3 | Pass |
 
 ## Test environment
@@ -52,3 +52,4 @@ transactions + 1 admin), so tests are independent and repeatable.
 | 17 | Delete customer that has accounts | `customerWithAccountsCannotBeDeleted` | rejected, customer kept | Pass |
 | 18 | Password storage | `passwordsAreStoredAsSaltedPbkdf2Hashes` | salted PBKDF2, unique per user | Pass |
 | 19 | Legacy SHA-256 password hashes | `PasswordUtilTest` (2 tests) | still verify, flagged and rehashed to PBKDF2 on login | Pass |
+| 20 | Admin customer list totals | `adminCustomerListShowsTotalBalanceOfAllAccounts` | total balance = sum of the customer accounts | Pass |
