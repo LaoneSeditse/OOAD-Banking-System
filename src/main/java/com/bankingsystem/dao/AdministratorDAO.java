@@ -48,6 +48,17 @@ public class AdministratorDAO {
         }
     }
 
+    public void updatePasswordHash(String adminId, String passwordHash) {
+        try (Connection conn = database.getConnection();
+             PreparedStatement ps = conn.prepareStatement("UPDATE administrators SET password_hash = ? WHERE admin_id = ?")) {
+            ps.setString(1, passwordHash);
+            ps.setString(2, adminId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not update administrator password", e);
+        }
+    }
+
     public int count() {
         try (Connection conn = database.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM administrators");

@@ -2,7 +2,7 @@
 
 **System:** OOAD Banking System (Java 17, JavaFX 17, H2 2.3 via JDBC)
 **Command:** `mvn test`
-**Result:** 28 tests, 0 failures, 0 errors
+**Result:** 30 tests, 0 failures, 0 errors
 
 | Suite | Layer(s) exercised | Tests | Result |
 |-------|--------------------|-------|--------|
@@ -51,3 +51,4 @@ transactions + 1 admin), so tests are independent and repeatable.
 | 16 | Amount parsing | `centAmountsAreAcceptedAndHugeOrExponentAmountsRejected` | 0.29 accepted; 1e16, >1 billion, 3 decimals rejected | Pass |
 | 17 | Delete customer that has accounts | `customerWithAccountsCannotBeDeleted` | rejected, customer kept | Pass |
 | 18 | Password storage | `passwordsAreStoredAsSaltedPbkdf2Hashes` | salted PBKDF2, unique per user | Pass |
+| 19 | Legacy SHA-256 password hashes | `PasswordUtilTest` (2 tests) | still verify, flagged and rehashed to PBKDF2 on login | Pass |

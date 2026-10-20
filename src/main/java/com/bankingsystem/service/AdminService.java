@@ -36,7 +36,13 @@ public class AdminService {
 
     public Optional<BankAdministrator> authenticate(String username, String rawPassword) {
         return administratorDAO.findByUsername(username)
-                .filter(admin -> admin.login(username, rawPassword));
+                .filter(admin -> admin.login(username, rawPassword))
+                .map(admin -> {
+                    if (PasswordUtil.needsRehash(admin.getPasswordHash())) {
+                        administratorDAO.updatePasswordHash(admin.getAdminId(), PasswordUtil.hash(rawPassword));
+                    }
+                    return admin;
+                });
     }
 
     public String generateCustomerReport() {

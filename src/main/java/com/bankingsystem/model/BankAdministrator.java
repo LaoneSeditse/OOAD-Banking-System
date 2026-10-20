@@ -21,7 +21,7 @@ public class BankAdministrator {
     }
 
     public boolean login(String username, String password) {
-        return this.username.equalsIgnoreCase(username) && PasswordUtil.matches(password, passwordHash);
+        return this.username.equalsIgnoreCase(username) && PasswordUtil.matches(this.username, password, passwordHash);
     }
 
     public String getAdminId() {

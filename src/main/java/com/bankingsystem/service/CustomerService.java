@@ -38,6 +38,10 @@ public class CustomerService {
         boolean ok = customer.login(username, rawPassword);
         customerDAO.updateLoginState(customer);
         if (ok) {
+            if (PasswordUtil.needsRehash(customer.getPassword())) {
+                customer.updatePassword(PasswordUtil.hash(rawPassword));
+                customerDAO.update(customer);
+            }
             return new AuthResult(AuthStatus.SUCCESS, customer);
         }
         return customer.getStatus() == UserStatus.LOCKED
@@ -48,7 +52,7 @@ public class CustomerService {
     public boolean verifyPassword(String customerId, String rawPassword) {
         return customerDAO.findById(customerId)
                 .filter(c -> c.isActive() && c.getStatus() == UserStatus.ACTIVE)
-                .map(c -> PasswordUtil.matches(rawPassword, c.getPassword()))
+                .map(c -> PasswordUtil.matches(c.getUsername(), rawPassword, c.getPassword()))
                 .orElse(false);
     }
 

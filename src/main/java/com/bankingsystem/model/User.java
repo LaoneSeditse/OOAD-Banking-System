@@ -40,7 +40,7 @@ public abstract class User {
         if (!isActive || status == UserStatus.LOCKED) {
             return false;
         }
-        boolean ok = this.username.equalsIgnoreCase(username) && PasswordUtil.matches(password, this.password);
+        boolean ok = this.username.equalsIgnoreCase(username) && PasswordUtil.matches(this.username, password, this.password);
         if (ok) {
             failedLoginAttempts = 0;
             loggedIn = true;
