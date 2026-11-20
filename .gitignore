@@ -1,0 +1,4 @@
+target/
+bank.db
+.idea/
+*.iml

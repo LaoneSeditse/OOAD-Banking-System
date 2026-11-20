@@ -1,0 +1,13 @@
+.background { -fx-background-color: #eef2f7; }
+.card { -fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 10, 0, 0, 2); }
+.title { -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1f3a5f; }
+.subtitle { -fx-text-fill: #667085; }
+.section { -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1f3a5f; }
+.error-text { -fx-text-fill: #c0392b; }
+.button { -fx-background-color: #1f6feb; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; }
+.button:hover { -fx-background-color: #1858bd; }
+.button.secondary { -fx-background-color: #e4e9f0; -fx-text-fill: #1f3a5f; }
+.button.secondary:hover { -fx-background-color: #d3dbe6; }
+.button.danger { -fx-background-color: #c0392b; }
+.button.danger:hover { -fx-background-color: #99301f; }
+.text-field, .password-field, .date-picker { -fx-background-radius: 6; }
